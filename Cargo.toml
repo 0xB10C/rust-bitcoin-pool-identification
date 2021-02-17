@@ -1,0 +1,18 @@
+[package]
+name = "bitcoin-pool-identification"
+version = "0.1.0"
+authors = ["0xB10C <0xb10c@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = "1"
+regex = "1"
+bitcoin = "0.26"
+hex = "0.4"
+
+[build-dependencies]
+serde = "1"
+serde_json = "1"
+serde_with = "1.6.4"

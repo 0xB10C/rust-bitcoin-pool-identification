@@ -1,0 +1,6 @@
+[submodule "Blockchain-Known-Pools"]
+	path = Blockchain-Known-Pools
+	url = https://github.com/blockchain/Blockchain-Known-Pools.git
+[submodule "known-mining-pools"]
+	path = known-mining-pools
+	url = git@github.com:0xB10C/known-mining-pools.git
