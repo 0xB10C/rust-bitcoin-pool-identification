@@ -199,8 +199,15 @@ impl PoolIdentification for Transaction {
     ///
     fn coinbase_output_address(&self) -> Option<Address> {
         assert!(self.is_coin_base());
-        let out0 = &self.output[0];
-        return Address::from_script(&out0.script_pubkey, Network::Bitcoin);
+        // We can't be sure that the first output is not, for example, an
+        // OP_RETURN output. See, for example, this transaction:
+        // 980fab41429b321b4722dcfb780d6f39f9f19065f1a96a5058689c312e0b16be
+        for out in &self.output {
+            if let Some(address) = Address::from_script(&out.script_pubkey, Network::Bitcoin) {
+                return Some(address);
+            }
+        }
+        return None;
     }
 }
 
@@ -367,4 +374,26 @@ mod tests {
         assert_eq!(tx.identify_coinbase_output_address(), expected);
         assert_eq!(tx.identify_coinbase_tag(), None);
     }
+
+    #[test]
+    fn test_coinbase_with_address_output_not_first() {
+        // Bitcoin mainnet coinbase transaction where the first output is an
+        // OP_RETURN output.
+        // 980fab41429b321b4722dcfb780d6f39f9f19065f1a96a5058689c312e0b16be
+        // Mined in Block 455860 by BitcoinRussia.
+        // 0000000000000000002f5721c2d63215a6a956a356d170339377ac24518e1df8
+        let rawtx = hex::decode("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4c03b4f40604f4fbbb5808fabe6d6dc6c7031efbd1de4725926e45c2ba9443fd84234cfb4cfb606e7d873cbdbdb88001000000000000005fffff799b3703000d2f6e6f64655374726174756d2f00000000020000000000000000266a24aa21a9ed159d16a5ce680dbe165700ef4a5776fcbf4fe216dc886c895d5dd5e0bd923aa0f5c77751000000001976a9142573e708154145b6a6a4a8898a2e458e6828d10688ac00000000").unwrap();
+        let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
+        let expected = Some(Pool {
+            name: "BitcoinRussia".to_string(),
+            link: Some("https://bitcoin-russia.ru/".to_string()),
+        });
+
+        assert_eq!(tx.identify_pool(), expected);
+        assert_eq!(tx.identify_coinbase_output_address(), expected);
+        assert_eq!(tx.identify_coinbase_tag(), None);
+    }
 }
+
+
+
