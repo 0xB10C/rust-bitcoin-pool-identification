@@ -114,5 +114,6 @@ fn main() {
         ),
     )
     .unwrap();
-    println!("cargo:rerun-if-changed=.");
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=known-mining-pools/pools.json");
 }
