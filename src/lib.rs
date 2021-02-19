@@ -52,10 +52,10 @@ pub trait PoolIdentification {
     /// this: �). Line-breaks are removed as well.
     fn coinbase_script_as_utf8(&self) -> String;
 
-    /// Returns the coinbase output address if the output is not a
-    /// Pay-to-Public-Key (P2PK) output. A lot of early coinbase transactions in
-    /// the Bitcoin blockchain used P2PK outputs.
-    fn coinbase_output_address(&self) -> Option<Address>;
+    /// Returns the coinbase output addresses for all output types that can be
+    /// represented as addresses. This excludes, for example, P2PK or OP_RETURN
+    /// outputs. Addresses are ordered by value (descending).
+    fn coinbase_output_addresses(&self) -> Vec<Address>;
 }
 
 impl PoolIdentification for Transaction {
@@ -165,8 +165,10 @@ impl PoolIdentification for Transaction {
     /// );
     /// ```
     fn identify_coinbase_output_address(&self) -> Option<Pool> {
-        if let Some(address) = self.coinbase_output_address() {
-            return coinbase_address_matching(address.to_string());
+        for address in self.coinbase_output_addresses() {
+            if let Some(pool) = coinbase_address_matching(address.to_string()) {
+                return Some(pool);
+            }
         }
         return None;
     }
@@ -188,26 +190,27 @@ impl PoolIdentification for Transaction {
             .to_string();
     }
 
-    /// Returns the coinbase output address if the output is not a
-    /// Pay-to-Public-Key (P2PK) output. A lot of early coinbase transactions in
-    /// the Bitcoin blockchain used P2PK outputs.
+    /// Returns the coinbase output addresses for all output types that can be
+    /// represented as addresses. This excludes, for example, P2PK or OP_RETURN
+    /// outputs. Addresses are ordered by value (descending).
     ///
     /// # Panics
     ///
     /// The caller MUST make sure the transaction is a **coinbase transaction**
     /// This can be done, for example, with [Transaction::is_coin_base()].
     ///
-    fn coinbase_output_address(&self) -> Option<Address> {
+    fn coinbase_output_addresses(&self) -> Vec<Address> {
         assert!(self.is_coin_base());
-        // We can't be sure that the first output is not, for example, an
-        // OP_RETURN output. See, for example, this transaction:
-        // 980fab41429b321b4722dcfb780d6f39f9f19065f1a96a5058689c312e0b16be
-        for out in &self.output {
+        let mut outputs = self.output.clone();
+        outputs.sort_by_key(|o| o.value);
+
+        let mut addresses = vec![];
+        for out in outputs {
             if let Some(address) = Address::from_script(&out.script_pubkey, Network::Bitcoin) {
-                return Some(address);
+                addresses.push(address);
             }
         }
-        return None;
+        return addresses;
     }
 }
 
@@ -265,7 +268,7 @@ impl PoolIdentification for Block {
         return coinbase.identify_coinbase_tag();
     }
 
-    /// Checks the coinbase output address against a list of known pool
+    /// Checks the coinbase output addresses against a list of known pool
     /// addresses and returns a found pool. If no output address matches, then
     /// `None` is returned.
     fn identify_coinbase_output_address(&self) -> Option<Pool> {
@@ -280,11 +283,11 @@ impl PoolIdentification for Block {
         return self.txdata.first().unwrap().coinbase_script_as_utf8();
     }
 
-    /// Returns the coinbase output address if the output is not a
-    /// Pay-to-Public-Key (P2PK) output. A lot of early coinbase transactions in
-    /// the Bitcoin blockchain used P2PK outputs.
-    fn coinbase_output_address(&self) -> Option<Address> {
-        return self.txdata.first().unwrap().coinbase_output_address();
+    /// Returns the coinbase output addresses for all output types that can be
+    /// represented as addresses. This excludes, for example, P2PK or OP_RETURN
+    /// outputs. Addresses are ordered by value (descending).
+    fn coinbase_output_addresses(&self) -> Vec<Address> {
+        return self.txdata.first().unwrap().coinbase_output_addresses();
     }
 }
 
@@ -394,6 +397,3 @@ mod tests {
         assert_eq!(tx.identify_coinbase_tag(), None);
     }
 }
-
-
-
