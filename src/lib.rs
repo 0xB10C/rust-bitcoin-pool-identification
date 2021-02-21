@@ -9,6 +9,14 @@ use serde::{Deserialize, Serialize};
 
 include!(concat!(env!("OUT_DIR"), "/matching.rs"));
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum IdentificationMethod {
+    /// The [Pool] was identified via a known coinbase output address.
+    Address,
+    /// The [Pool] was identified via a known tag in the coinbase script sig.
+    Tag,
+}
+
 /// Models a mining pool with a name and optionally a link to the pool website.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Pool {
@@ -16,6 +24,8 @@ pub struct Pool {
     pub name: String,
     /// Optional link to the mining pools website.
     pub link: Option<String>,
+    /// The method the pool was identified with.
+    pub identification_method: IdentificationMethod,
 }
 
 /// Trait for Bitcoin mining pool identification based on metadata like coinbase
@@ -76,7 +86,7 @@ impl PoolIdentification for Transaction {
     ///
     /// ```
     /// use bitcoin::Transaction;
-    /// use bitcoin_pool_identification::{Pool, PoolIdentification};
+    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification};
     ///
     /// // Bitcoin mainnet coinbase transaction of block 670828 mined by ViaBTC:
     /// // 71093a08fe47c9d0c08921049f1a317541d78470376d7029c5e27fda2205361b
@@ -87,7 +97,8 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("http://viabtc.com/".to_string())
+    ///         link: Some("http://viabtc.com/".to_string()),
+    ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
     fn identify_pool(&self) -> Option<Pool> {
@@ -149,7 +160,7 @@ impl PoolIdentification for Transaction {
     ///
     /// ```
     /// use bitcoin::Transaction;
-    /// use bitcoin_pool_identification::{Pool, PoolIdentification};
+    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification};
     ///
     /// // Bitcoin mainnet coinbase transaction of block 670828 mined by ViaBTC:
     /// // 71093a08fe47c9d0c08921049f1a317541d78470376d7029c5e27fda2205361b
@@ -160,7 +171,8 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("http://viabtc.com/".to_string())
+    ///         link: Some("http://viabtc.com/".to_string()),
+    ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
     /// ```
@@ -226,21 +238,27 @@ impl PoolIdentification for Block {
     /// ```
     ///
     /// use bitcoin::Block;
-    /// use bitcoin_pool_identification::{Pool, PoolIdentification};
+    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification};
     ///
     /// // Bitcoin mainnet block at height 670718 mined by BTC.com:
     /// // 0000000000000000000566438fa7dc31ec2b26e8cfd0a704822238ee8a40922c
     /// // Identified by both its coinbase tag and output address.
     /// let raw_block = hex::decode("00e0ff3f0c85cd07e4c8b446f64d9179ddd7627d4858f9bd07df08000000000000000000b263e9b0077a5f8ea941f8498a0df7b88d6d2077e9be4ef9d5b5f5b8e77906c9c56b2a60b9210d173aa2253a0102000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4c03fe3b0a04c16b2a6065752f4254432e636f6d2ffabe6d6d5793cfdad17c5272fca204a71fb04e88a5955239c018b8e5186ce838e789f7d4020000008e9b20aa04f5d252bb00000000000000ffffffff0340be4025000000001976a91474e878616bd5e5236ecb22667627eeecbff54b9f88ac00000000000000002b6a2952534b424c4f434b3a2dcf611172e7f2605b32915ca21102a7b0139400413995a4df47ea0b002ee6900000000000000000266a24b9e11b6d3974264c2913656ea4ee829e6327179645a5e8b4dc463914680b2003569a36e200000000").unwrap();
     /// let block: Block = bitcoin::consensus::deserialize(&raw_block).unwrap();
-    /// let expected = Some(Pool {
+    /// let expected_id_addr = Some(Pool {
     ///     name: "BTC.com".to_string(),
     ///     link: Some("https://pool.btc.com".to_string()),
+    ///     identification_method: IdentificationMethod::Address,
+    /// });
+    /// let expected_id_tag = Some(Pool {
+    ///     name: "BTC.com".to_string(),
+    ///     link: Some("https://pool.btc.com".to_string()),
+    ///     identification_method: IdentificationMethod::Tag,
     /// });
     ///
-    /// assert_eq!(block.identify_pool(), expected);
-    /// assert_eq!(block.identify_coinbase_output_address(), expected);
-    /// assert_eq!(block.identify_coinbase_tag(), expected);
+    /// assert_eq!(block.identify_pool(), expected_id_addr);
+    /// assert_eq!(block.identify_coinbase_output_address(), expected_id_addr);
+    /// assert_eq!(block.identify_coinbase_tag(), expected_id_tag);
     /// ```
     fn identify_pool(&self) -> Option<Pool> {
         if let Some(pool) = self.identify_coinbase_output_address() {
@@ -294,7 +312,7 @@ impl PoolIdentification for Block {
 #[cfg(test)]
 mod tests {
 
-    use super::{Pool, PoolIdentification};
+    use super::{IdentificationMethod, Pool, PoolIdentification};
     use bitcoin::{Block, Transaction};
     use hex;
 
@@ -317,31 +335,44 @@ mod tests {
         // Identified by both its coinbase tag and output address.
         let raw_block = hex::decode("00e0ff3f0c85cd07e4c8b446f64d9179ddd7627d4858f9bd07df08000000000000000000b263e9b0077a5f8ea941f8498a0df7b88d6d2077e9be4ef9d5b5f5b8e77906c9c56b2a60b9210d173aa2253a0102000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4c03fe3b0a04c16b2a6065752f4254432e636f6d2ffabe6d6d5793cfdad17c5272fca204a71fb04e88a5955239c018b8e5186ce838e789f7d4020000008e9b20aa04f5d252bb00000000000000ffffffff0340be4025000000001976a91474e878616bd5e5236ecb22667627eeecbff54b9f88ac00000000000000002b6a2952534b424c4f434b3a2dcf611172e7f2605b32915ca21102a7b0139400413995a4df47ea0b002ee6900000000000000000266a24b9e11b6d3974264c2913656ea4ee829e6327179645a5e8b4dc463914680b2003569a36e200000000").unwrap();
         let block: Block = bitcoin::consensus::deserialize(&raw_block).unwrap();
-        let expected = Some(Pool {
+        let expected_id_addr = Some(Pool {
             name: "BTC.com".to_string(),
             link: Some("https://pool.btc.com".to_string()),
+            identification_method: IdentificationMethod::Address,
         });
 
-        assert_eq!(block.identify_pool(), expected);
-        assert_eq!(block.identify_coinbase_output_address(), expected);
-        assert_eq!(block.identify_coinbase_tag(), expected);
+        let expected_id_tag = Some(Pool {
+            name: "BTC.com".to_string(),
+            link: Some("https://pool.btc.com".to_string()),
+            identification_method: IdentificationMethod::Tag,
+        });
+
+        assert_eq!(block.identify_pool(), expected_id_addr);
+        assert_eq!(block.identify_coinbase_output_address(), expected_id_addr);
+        assert_eq!(block.identify_coinbase_tag(), expected_id_tag);
     }
 
     #[test]
     fn test_coinbase_slushpool() {
         // Bitcoin mainnet coinbase transaction of block 670987 mined by SlushPool:
         // 069dc08e89524fb1f2120ecc383ec54bc3e54b9c63716ba4352147dcdd7240a6
-        // Identified by it's coinbase output address.
+        // Identified by both it's coinbase output address and coinbase tag.
         let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4b030b3d0afabe6d6d87a2773b0dfb971a762db2fd5a473882417a86aa7e1a2993feec04bfa383f93701000000000000002b6501031eb6e5300303000000000002c54ac6082f736c7573682f0000000003f09e942b000000001976a9147c154ed1dc59609e3d26abb2df2ea3d587cd8c4188ac00000000000000002c6a4c2952534b424c4f434b3ae47c0b11ada150b68f298a42147c6a1817907b6e0b435b0021057134002f87000000000000000000266a24aa21a9eda2fe9c7da3d1b9c033e1caa2064e844e1a1b46cf80c4a10c5d1cc15a34f252450120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-        let expected = Some(Pool {
+        let expected_id_addr = Some(Pool {
             name: "SlushPool".to_string(),
             link: Some("https://slushpool.com/".to_string()),
+            identification_method: IdentificationMethod::Address,
+        });
+        let expected_id_tag = Some(Pool {
+            name: "SlushPool".to_string(),
+            link: Some("https://slushpool.com/".to_string()),
+            identification_method: IdentificationMethod::Tag,
         });
 
-        assert_eq!(tx.identify_pool(), expected);
-        assert_eq!(tx.identify_coinbase_output_address(), expected);
-        assert_eq!(tx.identify_coinbase_tag(), expected);
+        assert_eq!(tx.identify_pool(), expected_id_addr);
+        assert_eq!(tx.identify_coinbase_output_address(), expected_id_addr);
+        assert_eq!(tx.identify_coinbase_tag(), expected_id_tag);
     }
 
     #[test]
@@ -354,6 +385,7 @@ mod tests {
         let expected = Some(Pool {
             name: "ViaBTC".to_string(),
             link: Some("http://viabtc.com/".to_string()),
+            identification_method: IdentificationMethod::Tag,
         });
 
         assert_eq!(tx.identify_pool(), expected);
@@ -371,6 +403,7 @@ mod tests {
         let expected = Some(Pool {
             name: "GHash.IO".to_string(),
             link: Some("https://ghash.io/".to_string()),
+            identification_method: IdentificationMethod::Address,
         });
 
         assert_eq!(tx.identify_pool(), expected);
@@ -390,6 +423,7 @@ mod tests {
         let expected = Some(Pool {
             name: "BitcoinRussia".to_string(),
             link: Some("https://bitcoin-russia.ru/".to_string()),
+            identification_method: IdentificationMethod::Address,
         });
 
         assert_eq!(tx.identify_pool(), expected);

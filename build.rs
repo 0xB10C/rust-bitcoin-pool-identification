@@ -33,7 +33,8 @@ fn generate_if_for_coinbase_tag(coinbase_tag: String, pool: Pool, first: bool) -
         "{}if coinbase_utf8.contains(\"{}\") {{
                 return Some(Pool{{
                     name: \"{}\".to_string(),
-                    link: {}
+                    link: {},
+                    identification_method: IdentificationMethod::Tag
                 }});
             }}",
         if !first { " else " } else { "" },
@@ -48,7 +49,8 @@ fn generate_matches_for_output_addresses(address: String, pool: Pool) -> String 
         "\"{}\" => {{
             return Some(Pool{{
                 name: \"{}\".to_string(),
-                link: {}
+                link: {},
+                identification_method: IdentificationMethod::Address
             }})
         }},\n\t",
         address,
