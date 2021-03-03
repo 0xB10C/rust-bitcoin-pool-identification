@@ -97,7 +97,7 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("http://viabtc.com/".to_string()),
+    ///         link: Some("https://viabtc.com/".to_string()),
     ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
@@ -171,7 +171,7 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("http://viabtc.com/".to_string()),
+    ///         link: Some("https://viabtc.com/".to_string()),
     ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
@@ -384,7 +384,7 @@ mod tests {
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
         let expected = Some(Pool {
             name: "ViaBTC".to_string(),
-            link: Some("http://viabtc.com/".to_string()),
+            link: Some("https://viabtc.com/".to_string()),
             identification_method: IdentificationMethod::Tag,
         });
 
