@@ -1,3 +1,7 @@
+[![docs.rs](https://img.shields.io/docsrs/bitcoin-pool-identification)](https://docs.rs/bitcoin-pool-identification/)
+[![Crates.io](https://img.shields.io/crates/v/bitcoin_pool_identification)](https://crates.io/crates/bitcoin-pool-identification)
+[![Rust build](https://github.com/0xB10C/rust-bitcoin-pool-identification/actions/workflows/rust.yml/badge.svg)](https://github.com/0xB10C/rust-bitcoin-pool-identification/actions/workflows/rust.yml)
+
 # Bitcoin Mining Pool Identification
 
 This Rust crate implements a new `PoolIdentification` trait on rust-bitcoin's
