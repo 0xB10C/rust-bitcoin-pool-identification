@@ -1,7 +1,7 @@
 [package]
 name = "bitcoin-pool-identification"
 description = "Coinbase tag and coinbase output address based mining-pool identification for rust-bitcoin's bitcoin::{Block, Transaction}"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["0xB10C <0xb10c@gmail.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
