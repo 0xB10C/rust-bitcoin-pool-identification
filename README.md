@@ -55,7 +55,7 @@ git submodule init
 git submodule update
 ```
 
-To pull changes from [0xB10C/known-mining-pools][3]'s master you need to `cd known-mining-pool` and `git pull` them there. These must be commited. Make sure the tests run!
+To pull changes from [0xB10C/known-mining-pools][3]'s master you need to `cd known-mining-pools` and `git pull` them there. These must be commited. Make sure the tests run!
 
 ## License
 
