@@ -12,7 +12,7 @@ repository = "https://github.com/0xB10C/rust-bitcoin-pool-identification"
 
 [dependencies]
 serde = "1"
-bitcoin = "0.26"
+bitcoin = "0.27"
 hex = "0.4"
 
 [build-dependencies]
