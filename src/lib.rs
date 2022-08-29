@@ -218,7 +218,7 @@ impl PoolIdentification for Transaction {
 
         let mut addresses = vec![];
         for out in outputs {
-            if let Some(address) = Address::from_script(&out.script_pubkey, Network::Bitcoin) {
+            if let Ok(address) = Address::from_script(&out.script_pubkey, Network::Bitcoin) {
                 addresses.push(address);
             }
         }
