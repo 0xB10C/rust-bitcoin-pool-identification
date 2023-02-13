@@ -97,7 +97,7 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("https://viabtc.com/".to_string()),
+    ///         link: Some("https://viabtc.com".to_string()),
     ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
@@ -171,7 +171,7 @@ impl PoolIdentification for Transaction {
     ///     pool,
     ///     Some(Pool {
     ///         name: "ViaBTC".to_string(),
-    ///         link: Some("https://viabtc.com/".to_string()),
+    ///         link: Some("https://viabtc.com".to_string()),
     ///         identification_method: IdentificationMethod::Tag,
     ///     })
     /// );
@@ -360,13 +360,13 @@ mod tests {
         let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4b030b3d0afabe6d6d87a2773b0dfb971a762db2fd5a473882417a86aa7e1a2993feec04bfa383f93701000000000000002b6501031eb6e5300303000000000002c54ac6082f736c7573682f0000000003f09e942b000000001976a9147c154ed1dc59609e3d26abb2df2ea3d587cd8c4188ac00000000000000002c6a4c2952534b424c4f434b3ae47c0b11ada150b68f298a42147c6a1817907b6e0b435b0021057134002f87000000000000000000266a24aa21a9eda2fe9c7da3d1b9c033e1caa2064e844e1a1b46cf80c4a10c5d1cc15a34f252450120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
         let expected_id_addr = Some(Pool {
-            name: "SlushPool".to_string(),
-            link: Some("https://slushpool.com/".to_string()),
+            name: "Braiins Pool".to_string(),
+            link: Some("https://braiins.com/".to_string()),
             identification_method: IdentificationMethod::Address,
         });
         let expected_id_tag = Some(Pool {
-            name: "SlushPool".to_string(),
-            link: Some("https://slushpool.com/".to_string()),
+            name: "Braiins Pool".to_string(),
+            link: Some("https://braiins.com/".to_string()),
             identification_method: IdentificationMethod::Tag,
         });
 
@@ -384,7 +384,7 @@ mod tests {
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
         let expected = Some(Pool {
             name: "ViaBTC".to_string(),
-            link: Some("https://viabtc.com/".to_string()),
+            link: Some("https://viabtc.com".to_string()),
             identification_method: IdentificationMethod::Tag,
         });
 
@@ -402,7 +402,7 @@ mod tests {
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
         let expected = Some(Pool {
             name: "GHash.IO".to_string(),
-            link: Some("https://ghash.io/".to_string()),
+            link: Some("https://ghash.io".to_string()),
             identification_method: IdentificationMethod::Address,
         });
 
@@ -422,7 +422,7 @@ mod tests {
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
         let expected = Some(Pool {
             name: "BitcoinRussia".to_string(),
-            link: Some("https://bitcoin-russia.ru/".to_string()),
+            link: Some("https://bitcoin-russia.ru".to_string()),
             identification_method: IdentificationMethod::Address,
         });
 
