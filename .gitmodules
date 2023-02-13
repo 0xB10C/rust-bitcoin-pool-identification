@@ -1,3 +1,4 @@
 [submodule "known-mining-pools"]
 	path = known-mining-pools
-	url = https://github.com/0xB10C/known-mining-pools.git
+  url = https://github.com/bitcoin-data/mining-pools.git
+  branch = generated
