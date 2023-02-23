@@ -3,7 +3,7 @@ name = "bitcoin-pool-identification"
 description = "Coinbase tag and coinbase output address based mining-pool identification for rust-bitcoin's bitcoin::{Block, Transaction}"
 version = "0.2.1"
 authors = ["0xB10C <0xb10c@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["bitcoin", "mining-pool", "identification"]
 build = "build.rs"
@@ -11,7 +11,7 @@ categories = ["cryptography::cryptocurrencies"]
 repository = "https://github.com/0xB10C/rust-bitcoin-pool-identification"
 
 [dependencies]
-serde = "1"
+serde = { version = "1.0", features = ["derive"] }
 bitcoin = "0.29"
 hex = "0.4"
 
