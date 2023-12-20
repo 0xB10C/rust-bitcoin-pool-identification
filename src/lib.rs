@@ -3,8 +3,7 @@
 //! metadata like, for example, pool set coinbase tags or coinbase output
 //! addresses.
 
-use bitcoin::network::constants::Network;
-use bitcoin::{Address, Block, Transaction};
+use bitcoin::{Address, Block, Network, Transaction};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -41,7 +40,7 @@ impl Pool {
                 // We make sure to return a signet address in case the network
                 // is signet
                 if network == Network::Signet {
-                    Address::new(Network::Signet, parsed.payload)
+                    Address::new(Network::Signet, parsed.payload().clone())
                 } else {
                     parsed
                 }
@@ -194,7 +193,7 @@ impl PoolIdentification for Transaction {
     /// assert_eq!(pool.name, "ViaBTC");
     /// ```
     fn identify_coinbase_tag(&self, pools: &[Pool]) -> Option<IdentificationResult> {
-        assert!(self.is_coin_base());
+        assert!(self.is_coinbase());
         let utf8_coinbase = self.coinbase_script_as_utf8();
         for pool in pools.iter() {
             for tag in pool.tags.iter() {
@@ -216,7 +215,7 @@ impl PoolIdentification for Transaction {
     /// # Panics
     ///
     /// The caller MUST make sure the transaction is a **coinbase transaction**
-    /// This can be done, for example, with [Transaction::is_coin_base()].
+    /// This can be done, for example, with [Transaction::is_coinbase()].
     ///
     /// # Examples
     ///
@@ -259,10 +258,10 @@ impl PoolIdentification for Transaction {
     /// # Panics
     ///
     /// The caller MUST make sure the transaction is a **coinbase transaction**
-    /// This can be done, for example, with [Transaction::is_coin_base()]. This
+    /// This can be done, for example, with [Transaction::is_coinbase()]. This
     /// is asserted and will panic.
     fn coinbase_script_as_utf8(&self) -> String {
-        assert!(self.is_coin_base());
+        assert!(self.is_coinbase());
         let in0 = &self.input[0];
         return String::from_utf8_lossy(in0.script_sig.as_bytes())
             .replace('\n', "")
@@ -276,10 +275,10 @@ impl PoolIdentification for Transaction {
     /// # Panics
     ///
     /// The caller MUST make sure the transaction is a **coinbase transaction**
-    /// This can be done, for example, with [Transaction::is_coin_base()].
+    /// This can be done, for example, with [Transaction::is_coinbase()].
     ///
     fn coinbase_output_addresses(&self, network: Network) -> Vec<Address> {
-        assert!(self.is_coin_base());
+        assert!(self.is_coinbase());
         let mut outputs = self.output.clone();
         outputs.sort_by_key(|o| o.value);
 
