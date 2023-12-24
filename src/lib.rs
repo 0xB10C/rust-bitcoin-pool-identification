@@ -74,6 +74,24 @@ pub fn parse_json(json: &str) -> Result<Vec<Pool>, serde_json::Error> {
     serde_json::from_str(json)
 }
 
+/// Returns the default pool list for the given [Network]. These lists might
+/// not be fully up-to-date. Currently, only default lists for
+/// [Network::Bitcoin] (mainnet) and [Network:Signet] are provided. The
+/// defaults for [Network::Testnet] and [Network::Regtest] are empty lists.
+/// For all other possible future networks (Network is non_exhaustive), an
+/// empty list is returned.
+pub fn default_data(network: Network) -> Vec<Pool> {
+    match network {
+        Network::Bitcoin => parse_json(DEFAULT_MAINNET_POOL_LIST)
+            .expect("the default mainnet JSON list should be parseable"),
+        Network::Testnet => vec![], // update the comment above when changeing this
+        Network::Signet => parse_json(DEFAULT_SIGNET_POOL_LIST)
+            .expect("the default signet JSON list should be parseable"),
+        Network::Regtest => vec![], // update the comment above when changeing this
+        _ => vec![],                // update the comment above when changeing this
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum IdentificationMethod {
     /// The [Pool] was identified via a known coinbase output address.
@@ -104,13 +122,13 @@ pub trait PoolIdentification {
     ///
     /// ```
     /// use bitcoin::{Transaction, Network};
-    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification, parse_json, DEFAULT_MAINNET_POOL_LIST};
+    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification, default_data, DEFAULT_MAINNET_POOL_LIST};
     ///
     /// // Bitcoin mainnet coinbase transaction of block 670828 mined by ViaBTC:
     /// // 71093a08fe47c9d0c08921049f1a317541d78470376d7029c5e27fda2205361b
     /// let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff5f036c3c0a1c2f5669614254432f4d696e6564206279206c6565686f6f343434342f2cfabe6d6d41f647100ea398435411f0297fd9d798625e1b82c82451f7c6ccb59c0c67ec07100000000000000010d02cfe0845dca9281bb0ee077c090000ffffffff04bdb8892b000000001976a914536ffa992491508dca0354e52f32a3a7a679a53a88ac00000000000000002b6a2952534b424c4f434b3a2f21f07f3619ef6521a90de396c2617f2edc5bda4fd04aba89632f2c002f79bc0000000000000000266a24b9e11b6d2dd1c7233a019c512c5f1e105e185a6ea0a47824b5ae390cc7cec5c01714588b0000000000000000266a24aa21a9ed23418324183dba97076f21aadc97aeeb1782c6859faf8e141c601e5c856c55440120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
     /// let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-    /// let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).expect("The default mainnet list should be parseable");
+    /// let pools = default_data(Network::Bitcoin);
     /// let pool = tx.identify_pool(Network::Bitcoin, &pools).unwrap().pool;
     /// assert_eq!(pool.name, "ViaBTC".to_string());
     fn identify_pool(&self, network: Network, pools: &[Pool]) -> Option<IdentificationResult> {
@@ -182,13 +200,13 @@ impl PoolIdentification for Transaction {
     ///
     /// ```
     /// use bitcoin::{Transaction, Network};
-    /// use bitcoin_pool_identification::{Pool, PoolIdentification, DEFAULT_MAINNET_POOL_LIST, parse_json};
+    /// use bitcoin_pool_identification::{Pool, PoolIdentification, DEFAULT_MAINNET_POOL_LIST, default_data};
     ///
     /// // Bitcoin mainnet coinbase transaction of block 670828 mined by ViaBTC:
     /// // 71093a08fe47c9d0c08921049f1a317541d78470376d7029c5e27fda2205361b
     /// let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff5f036c3c0a1c2f5669614254432f4d696e6564206279206c6565686f6f343434342f2cfabe6d6d41f647100ea398435411f0297fd9d798625e1b82c82451f7c6ccb59c0c67ec07100000000000000010d02cfe0845dca9281bb0ee077c090000ffffffff04bdb8892b000000001976a914536ffa992491508dca0354e52f32a3a7a679a53a88ac00000000000000002b6a2952534b424c4f434b3a2f21f07f3619ef6521a90de396c2617f2edc5bda4fd04aba89632f2c002f79bc0000000000000000266a24b9e11b6d2dd1c7233a019c512c5f1e105e185a6ea0a47824b5ae390cc7cec5c01714588b0000000000000000266a24aa21a9ed23418324183dba97076f21aadc97aeeb1782c6859faf8e141c601e5c856c55440120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
     /// let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-    /// let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).expect("The default mainnet list should be parseable");
+    /// let pools = default_data(Network::Bitcoin);
     /// let pool = tx.identify_coinbase_tag(&pools).unwrap().pool;
     /// assert_eq!(pool.name, "ViaBTC");
     /// ```
@@ -221,13 +239,13 @@ impl PoolIdentification for Transaction {
     ///
     /// ```
     /// use bitcoin::{Transaction, Network};
-    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification, DEFAULT_MAINNET_POOL_LIST, parse_json};
+    /// use bitcoin_pool_identification::{IdentificationMethod, Pool, PoolIdentification, DEFAULT_MAINNET_POOL_LIST, default_data};
     ///
     /// // Bitcoin mainnet coinbase transaction of block 670828 mined by ViaBTC:
     /// // 71093a08fe47c9d0c08921049f1a317541d78470376d7029c5e27fda2205361b
     /// let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff5f036c3c0a1c2f5669614254432f4d696e6564206279206c6565686f6f343434342f2cfabe6d6d41f647100ea398435411f0297fd9d798625e1b82c82451f7c6ccb59c0c67ec07100000000000000010d02cfe0845dca9281bb0ee077c090000ffffffff04bdb8892b000000001976a914536ffa992491508dca0354e52f32a3a7a679a53a88ac00000000000000002b6a2952534b424c4f434b3a2f21f07f3619ef6521a90de396c2617f2edc5bda4fd04aba89632f2c002f79bc0000000000000000266a24b9e11b6d2dd1c7233a019c512c5f1e105e185a6ea0a47824b5ae390cc7cec5c01714588b0000000000000000266a24aa21a9ed23418324183dba97076f21aadc97aeeb1782c6859faf8e141c601e5c856c55440120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
     /// let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-    /// let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).expect("The default mainnet list should be parseable");
+    /// let pools = default_data(Network::Bitcoin);
     /// let pool = tx.identify_coinbase_output_address(Network::Bitcoin, &pools);
     /// assert_eq!(pool, None);
     /// ```
@@ -343,12 +361,9 @@ impl PoolIdentification for Block {
 #[cfg(test)]
 mod tests {
 
-    use crate::{parse_json, IdentificationResult};
+    use crate::{default_data, IdentificationResult};
 
-    use super::{
-        IdentificationMethod, Pool, PoolIdentification, DEFAULT_MAINNET_POOL_LIST,
-        DEFAULT_SIGNET_POOL_LIST,
-    };
+    use super::{IdentificationMethod, Pool, PoolIdentification};
     use bitcoin::{Block, Network, Transaction};
     use hex;
 
@@ -358,8 +373,7 @@ mod tests {
         // 0000000099c744455f58e6c6e98b671e1bf7f37346bfd4cf5d0274ad8ee660cb
         let raw_block = hex::decode("01000000a7c3299ed2475e1d6ea5ed18d5bfe243224add249cce99c5c67cc9fb00000000601c73862a0a7238e376f497783c8ecca2cf61a4f002ec8898024230787f399cb575d949ffff001d3a5de07f0101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0804ffff001d026f03ffffffff0100f2052a010000004341042f462d3245d2f3a015f7f9505f763ee1080cab36191d07ae9e6509f71bb68818719e6fb41c019bf48ae11c45b024d476e19b6963103ce8647fc15fee513b15c7ac00000000").unwrap();
         let block: Block = bitcoin::consensus::deserialize(&raw_block).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         assert_eq!(block.identify_pool(Network::Bitcoin, &pools.clone()), None);
         assert_eq!(
@@ -376,8 +390,7 @@ mod tests {
         // Identified by both its coinbase tag and output address.
         let raw_block = hex::decode("00e0ff3f0c85cd07e4c8b446f64d9179ddd7627d4858f9bd07df08000000000000000000b263e9b0077a5f8ea941f8498a0df7b88d6d2077e9be4ef9d5b5f5b8e77906c9c56b2a60b9210d173aa2253a0102000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4c03fe3b0a04c16b2a6065752f4254432e636f6d2ffabe6d6d5793cfdad17c5272fca204a71fb04e88a5955239c018b8e5186ce838e789f7d4020000008e9b20aa04f5d252bb00000000000000ffffffff0340be4025000000001976a91474e878616bd5e5236ecb22667627eeecbff54b9f88ac00000000000000002b6a2952534b424c4f434b3a2dcf611172e7f2605b32915ca21102a7b0139400413995a4df47ea0b002ee6900000000000000000266a24b9e11b6d3974264c2913656ea4ee829e6327179645a5e8b4dc463914680b2003569a36e200000000").unwrap();
         let block: Block = bitcoin::consensus::deserialize(&raw_block).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         let pool = Pool {
             id: 43,
@@ -426,8 +439,7 @@ mod tests {
         // Identified by both it's coinbase output address and coinbase tag.
         let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4b030b3d0afabe6d6d87a2773b0dfb971a762db2fd5a473882417a86aa7e1a2993feec04bfa383f93701000000000000002b6501031eb6e5300303000000000002c54ac6082f736c7573682f0000000003f09e942b000000001976a9147c154ed1dc59609e3d26abb2df2ea3d587cd8c4188ac00000000000000002c6a4c2952534b424c4f434b3ae47c0b11ada150b68f298a42147c6a1817907b6e0b435b0021057134002f87000000000000000000266a24aa21a9eda2fe9c7da3d1b9c033e1caa2064e844e1a1b46cf80c4a10c5d1cc15a34f252450120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         let pool = Pool {
             id: 119,
@@ -465,8 +477,7 @@ mod tests {
         // Identified by it's coinbase tag.
         let rawtx = hex::decode("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff5f036c3c0a1c2f5669614254432f4d696e6564206279206c6565686f6f343434342f2cfabe6d6d41f647100ea398435411f0297fd9d798625e1b82c82451f7c6ccb59c0c67ec07100000000000000010d02cfe0845dca9281bb0ee077c090000ffffffff04bdb8892b000000001976a914536ffa992491508dca0354e52f32a3a7a679a53a88ac00000000000000002b6a2952534b424c4f434b3a2f21f07f3619ef6521a90de396c2617f2edc5bda4fd04aba89632f2c002f79bc0000000000000000266a24b9e11b6d2dd1c7233a019c512c5f1e105e185a6ea0a47824b5ae390cc7cec5c01714588b0000000000000000266a24aa21a9ed23418324183dba97076f21aadc97aeeb1782c6859faf8e141c601e5c856c55440120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         let pool = Pool {
             id: 110,
@@ -496,8 +507,7 @@ mod tests {
         // Identified by its output address.
         let rawtx = hex::decode("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac00000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         let pool = Pool {
             id: 26,
@@ -529,8 +539,7 @@ mod tests {
         // 0000000000000000002f5721c2d63215a6a956a356d170339377ac24518e1df8
         let rawtx = hex::decode("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4c03b4f40604f4fbbb5808fabe6d6dc6c7031efbd1de4725926e45c2ba9443fd84234cfb4cfb606e7d873cbdbdb88001000000000000005fffff799b3703000d2f6e6f64655374726174756d2f00000000020000000000000000266a24aa21a9ed159d16a5ce680dbe165700ef4a5776fcbf4fe216dc886c895d5dd5e0bd923aa0f5c77751000000001976a9142573e708154145b6a6a4a8898a2e458e6828d10688ac00000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-
-        let pools = parse_json(DEFAULT_MAINNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Bitcoin);
 
         let pool = Pool {
             id: 104,
@@ -563,8 +572,7 @@ mod tests {
         // Identified by both it's coinbase tag.
         let rawtx = hex::decode("020000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff0f0317a9020a2f7369676e65743a332ffeffffff0200f2052a010000002251207099e4b23427fc40ba4777bbf52cfd0b7444d69a3e21ef281270723f54c0c14b0000000000000000776a24aa21a9ede2f61c3f71d1defd3fa999dfa36953755c690689799962b48bebd836974e8cf94c4fecc7daa2490047304402205dfcbd8c81d0ed065ed0662e9b833424a8ae495afda62c101ad9ca656c15d56f02205bf4f0ea0956ff1529f7e93a3d003c9f3b5372913fc1b825afbc6ef9598a654a01000120000000000000000000000000000000000000000000000000000000000000000000000000").unwrap();
         let tx: Transaction = bitcoin::consensus::deserialize(&rawtx).unwrap();
-
-        let pools = parse_json(DEFAULT_SIGNET_POOL_LIST).unwrap();
+        let pools = default_data(Network::Signet);
 
         let pool = Pool {
             id: 3,
