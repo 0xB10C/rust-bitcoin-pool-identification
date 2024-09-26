@@ -31,19 +31,10 @@ impl Pool {
         self.addresses
             .iter()
             .map(|a| {
-                let parsed = Address::from_str(a)
+                Address::from_str(a)
                     .unwrap()
                     .require_network(network)
-                    .unwrap();
-                // As the HRP 'tb1' is used for both testnet and signet, parsing
-                // a Signet address returns a testnet address in rust-bitcoin.
-                // We make sure to return a signet address in case the network
-                // is signet
-                if network == Network::Signet {
-                    Address::new(Network::Signet, parsed.payload().clone())
-                } else {
-                    parsed
-                }
+                    .unwrap()
             })
             .collect()
     }
