@@ -272,9 +272,9 @@ impl PoolIdentification for Transaction {
     fn coinbase_script_as_utf8(&self) -> String {
         assert!(self.is_coinbase());
         let in0 = &self.input[0];
-        return String::from_utf8_lossy(in0.script_sig.as_bytes())
+        String::from_utf8_lossy(in0.script_sig.as_bytes())
             .replace('\n', "")
-            .to_string();
+            .to_string()
     }
 
     /// Returns the coinbase output addresses for all output types that can be
@@ -334,18 +334,17 @@ impl PoolIdentification for Block {
     /// UTF-8 sequences with U+FFFD REPLACEMENT CHARACTER, which looks like
     /// this: �). Line-breaks are removed as well.
     fn coinbase_script_as_utf8(&self) -> String {
-        return self.txdata.first().unwrap().coinbase_script_as_utf8();
+        self.txdata.first().unwrap().coinbase_script_as_utf8()
     }
 
     /// Returns the coinbase output addresses for all output types that can be
     /// represented as addresses. This excludes, for example, P2PK or OP_RETURN
     /// outputs. Addresses are ordered by value (descending).
     fn coinbase_output_addresses(&self, network: Network) -> Vec<Address> {
-        return self
-            .txdata
+        self.txdata
             .first()
             .unwrap()
-            .coinbase_output_addresses(network);
+            .coinbase_output_addresses(network)
     }
 }
 
