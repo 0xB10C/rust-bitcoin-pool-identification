@@ -474,7 +474,7 @@ mod tests {
 
         let pool = Pool {
             id: 110,
-            addresses: vec![],
+            addresses: vec!["1PuJjnF476W3zXfVYmJfGnouzFDAXakkL4".to_string()],
             tags: vec!["/ViaBTC/".to_string(), "viabtc.com deploy".to_string()],
             name: "ViaBTC".to_string(),
             link: "https://viabtc.com".to_string(),
